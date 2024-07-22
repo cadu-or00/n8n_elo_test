@@ -1,0 +1,289 @@
+{
+  "name": "My workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": ["*"],
+        "additionalFields": {}
+      },
+      "id": "b6830f6a-b298-4e5e-bfdc-e2d3afd088e9",
+      "name": "Telegram Trigger",
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.1,
+      "position": [980, 360],
+      "webhookId": "ff0d81c4-beac-446a-a13e-7a8b662cd9c3",
+      "credentials": {
+        "telegramApi": {
+          "id": "0i0mYET56aXPxdvc",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $json.message.chat.id }}",
+        "text": "=Escolha a operação que deseja fazer",
+        "replyMarkup": "inlineKeyboard",
+        "inlineKeyboard": {
+          "rows": [
+            {
+              "row": {
+                "buttons": [
+                  {
+                    "text": "Select count",
+                    "additionalFields": {
+                      "callback_data": "select count"
+                    }
+                  },
+                  {
+                    "text": "Select",
+                    "additionalFields": {
+                      "callback_data": "select"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "id": "5a63ca1a-8864-4944-95ea-bba419edf0ca",
+      "name": "Telegram",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [1700, 420],
+      "credentials": {
+        "telegramApi": {
+          "id": "0i0mYET56aXPxdvc",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "12a03d84-8eaf-4576-9588-b321c211fcca",
+              "leftValue": "={{ $json.callback_query }}",
+              "rightValue": "/start",
+              "operator": {
+                "type": "object",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "cf14b11f-5fb4-4d38-add6-817202882766",
+      "name": "If",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [1180, 360]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT COUNT(*) FROM nfse;",
+        "options": {}
+      },
+      "id": "fab888c5-f0e9-4f1c-8782-14326902337b",
+      "name": "select count",
+      "type": "n8n-nodes-base.mySql",
+      "typeVersion": 2.4,
+      "position": [1660, 160],
+      "credentials": {
+        "mySql": {
+          "id": "DSp3GwWKvsNIKsDr",
+          "name": "MySQL account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "select",
+        "table": {
+          "__rl": true,
+          "value": "=nfse",
+          "mode": "name"
+        },
+        "limit": 10,
+        "options": {}
+      },
+      "id": "e14c4f4f-a162-4096-9e13-8d5b71c1d6e2",
+      "name": "select ",
+      "type": "n8n-nodes-base.mySql",
+      "typeVersion": 2.4,
+      "position": [1660, -60],
+      "credentials": {
+        "mySql": {
+          "id": "DSp3GwWKvsNIKsDr",
+          "name": "MySQL account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.callback_query.message.chat.id }}",
+        "text": "={{ $json['COUNT(*)'] }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "id": "10194d5e-597c-496b-aa75-8196d89e5d7f",
+      "name": "Telegram1",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [1900, 160],
+      "credentials": {
+        "telegramApi": {
+          "id": "0i0mYET56aXPxdvc",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.callback_query.data }}",
+                    "rightValue": "select",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "select"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "id": "0c2bdab4-c8c2-4eb4-bc89-1929c4fedcd4",
+                    "leftValue": "={{ $json.callback_query.data }}",
+                    "rightValue": "select count",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "select count"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "c3c7be4b-6bc7-4644-9cf0-34976e627f23",
+      "name": "Switch",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3,
+      "position": [1340, 60]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Telegram",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "select ",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "select count",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "select count": {
+      "main": [
+        [
+          {
+            "node": "Telegram1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "183e20bf-5aa1-4748-a714-4239412cd4b3",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "7ebc0f518066d310fbc9aa5457aad9ca2dd12ab020b09b9049770bcbaff1d092"
+  },
+  "id": "mz8TgSXOEFCm0MMb",
+  "tags": []
+}
